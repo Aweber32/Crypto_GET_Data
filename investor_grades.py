@@ -24,6 +24,7 @@ for token in TOKENS:
     data_grades = response_grades.json()
 
     for signal in data_signals.get('data', []):
+        id = str(datetime.now().strftime("%Y%m%d%H%M%S")) + signal["TOKEN_SYMBOL"]
         token_name = signal["TOKEN_NAME"]
         symbol = signal["TOKEN_SYMBOL"]
         date = signal["DATE"]
@@ -37,6 +38,7 @@ for token in TOKENS:
         ta_grade = grade["TA_GRADE"]
         quant_grade = grade["QUANT_GRADE"]
         tm_trader_grade_24h_pct_change = grade["TM_TRADER_GRADE_24H_PCT_CHANGE"]
+    print("id:", id)
     print("token_name:", token_name)
     print("symbol:", symbol)
     print("date:", date)
