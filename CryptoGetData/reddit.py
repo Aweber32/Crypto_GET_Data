@@ -6,7 +6,7 @@ import CryptoGetData.reddit_configs as reddit_configs
 import prawcore
 from datetime import datetime
 import requests
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 def run():
     # Create Reddit API instance using your app credentials

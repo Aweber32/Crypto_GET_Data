@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 
 def run():
