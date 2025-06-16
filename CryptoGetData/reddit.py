@@ -1,5 +1,5 @@
-import praw
 import pandas as pd
+import praw
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import time
 import CryptoGetData.reddit_configs as reddit_configs

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # Root path of your function app
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '${{ github.workspace }}'
   PYTHON_VERSION: '3.12'
 
 jobs:
@@ -25,18 +25,21 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies into Azure Functions compatible structure
+      - name: Create and activate virtual environment
         run: |
-          mkdir -p CryptoGetData/.python_packages/lib/site-packages
-          pip install -r requirements.txt --target="./CryptoGetData/.python_packages/lib/site-packages"
+          python -m venv venv
+          source venv/bin/activate
 
-      - name: Prepare artifact for deployment
+      - name: Install dependencies locally and for Azure Functions
         run: |
-          mkdir package
-          cp host.json requirements.txt package/
-          cp -r CryptoGetData package/CryptoGetData
-          cd package
-          zip -r ../release.zip .
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements.txt -t .python_packages/lib/site-packages
+
+      - name: Zip artifact for deployment
+        run: |
+          zip -r release.zip CryptoGetData host.json requirements.txt .python_packages -x "venv/*" "*.git*" ".github/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -73,4 +76,4 @@ jobs:
         with:
           app-name: 'CryptoGetData'
           slot-name: 'Production'
-          package: .
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
