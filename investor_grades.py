@@ -1,5 +1,7 @@
 import requests
 from datetime import datetime, timedelta
+from backports.zoneinfo import ZoneInfo
+
 
 HEADERS = {
     "accept": "application/json",
@@ -12,6 +14,9 @@ TOKENS = {
     '3369',  # XRP
     '3988',  # SOL
 }
+
+# Get current time in Eastern Time, rounded to the hour
+est_hour = datetime.now(ZoneInfo("America/New_York")).replace(minute=0, second=0, microsecond=0)
 
 for token in TOKENS:
     URL_SIGNALS = f"https://api.tokenmetrics.com/v2/trading-signals?token_id={token}&limit=1"
@@ -27,7 +32,6 @@ for token in TOKENS:
         id = str(datetime.now().strftime("%Y%m%d%H%M%S")) + signal["TOKEN_SYMBOL"]
         token_name = signal["TOKEN_NAME"]
         symbol = signal["TOKEN_SYMBOL"]
-        date = signal["DATE"]
         trading_signal = signal["TRADING_SIGNAL"]
         token_trend = signal["TOKEN_TREND"]
         trading_signals_returns = signal["TRADING_SIGNALS_RETURNS"]
@@ -43,7 +47,7 @@ for token in TOKENS:
     payload = {      
         "id": id,
         "Symbol": symbol,
-        "Date": date, 
+        "Date": est_hour.isoformat(), 
         "TokenName": token_name,
         "TradingSignal": trading_signal,
         "TokenTrend": token_trend,
@@ -62,6 +66,7 @@ for token in TOKENS:
 
     response = requests.post(url, json=payload, headers=headers, timeout=5)
     print(f"Response Status: {response.status_code}")
+
 
                 
        
