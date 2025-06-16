@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # Path to the root of the function app
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # Root path of your function app
   PYTHON_VERSION: '3.12'
 
 jobs:
@@ -27,11 +27,10 @@ jobs:
 
       - name: Install dependencies into Azure Functions compatible structure
         run: |
+          mkdir -p CryptoGetData/.python_packages/lib/site-packages
           pip install -r requirements.txt --target="./CryptoGetData/.python_packages/lib/site-packages"
 
-      # Optional: Add test steps here
-
-      - name: Zip artifact for deployment (clean)
+      - name: Prepare artifact for deployment
         run: |
           mkdir package
           cp host.json requirements.txt package/
@@ -43,8 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            release.zip
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -69,7 +67,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C3E386A65DAF4521864E947E2D9F3C7D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A7B5AD3A665B464DB561F5FF4F598033 }}
 
-      - name: 'Deploy to Azure Functions'
+      - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:
