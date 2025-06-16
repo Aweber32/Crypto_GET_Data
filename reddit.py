@@ -5,6 +5,8 @@ import time
 import reddit_configs
 import prawcore
 from datetime import datetime
+import requests
+from backports.zoneinfo import ZoneInfo
 
 # Create Reddit API instance using your app credentials
 reddit = praw.Reddit(
@@ -33,6 +35,10 @@ configs = {
     },
 }
 
+# Get current time in Eastern Time, rounded to the hour
+est_hour = datetime.now(ZoneInfo("America/New_York")).replace(minute=0, second=0, microsecond=0)
+
+#print(est_hour.isoformat())  # Example: '2025-06-10T12:00:00-04:00'
 
 time_filter = 'hour'
 limit_posts = 50
@@ -65,11 +71,35 @@ for coin, cfg in configs.items():
     df = pd.DataFrame(rows)
     if not df.empty:
         id = str(datetime.now().strftime("%Y%m%d%H%M%S")) + coin
-        print(id)
-        print(f"{coin} sentiment (from {used_post_count} matching posts):")
-        print(f"{coin}: pos={df.positive.mean():.3f}, "
-              f"neu={df.neutral.mean():.3f}, "
-              f"neg={df.negative.mean():.3f}")
+        pos = df.positive.mean()
+        neu = df.neutral.mean()
+        neg = df.negative.mean()
+        #print(id)
+        #print(f"{coin} sentiment (from {used_post_count} matching posts):")
+        #print(f"{coin}: pos={df.positive.mean():.3f}, "
+              #f"neu={df.neutral.mean():.3f}, "
+              #f"neg={df.negative.mean():.3f}")
     else:
         print(f"{coin}: no valid posts found.")
     time.sleep(5)
+    # Define the URL for the POST request
+    
+    url = "https://cryptocurrency.azurewebsites.net/api/Sentiment"
+
+    payload = {
+        "id": id,
+        "Symbol": coin,
+        "Date": est_hour.isoformat(),
+        "PositiveReddit": pos,
+        "NeutralReddit": neu,
+        "NegativeReddit": neg,
+        "PostCountReddit": used_post_count
+    }
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(url, json=payload, headers=headers, timeout=5)
+    print(f"Response Status: {response.status_code}")
+       

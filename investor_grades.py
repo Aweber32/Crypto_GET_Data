@@ -38,19 +38,31 @@ for token in TOKENS:
         ta_grade = grade["TA_GRADE"]
         quant_grade = grade["QUANT_GRADE"]
         tm_trader_grade_24h_pct_change = grade["TM_TRADER_GRADE_24H_PCT_CHANGE"]
-    print("id:", id)
-    print("token_name:", token_name)
-    print("symbol:", symbol)
-    print("date:", date)
-    print("trading_signal:", trading_signal)
-    print("token_trend:", token_trend)
-    print("trading_signals_returns:", trading_signals_returns)
-    print("holding_returns:", holding_returns)
-    print("tm_trader_grade:", tm_trader_grade)
-    print("tm_investor_grade:", tm_investor_grade)
-    print("ta_grade:", ta_grade)
-    print("quant_grade:", quant_grade)  
-    print("tm_trader_grade_24h_pct_change:", tm_trader_grade_24h_pct_change)
+    url = "https://cryptocurrency.azurewebsites.net/api/InvestorGrade"
+
+    payload = {      
+        "id": id,
+        "Symbol": symbol,
+        "Date": date, 
+        "TokenName": token_name,
+        "TradingSignal": trading_signal,
+        "TokenTrend": token_trend,
+        "TradingSignalsReturns": trading_signals_returns,
+        "HoldingReturns": holding_returns,
+        "TMTraderGrade": tm_trader_grade,
+        "TMInvestorGrade": tm_investor_grade,
+        "TAGrade": ta_grade,
+        "QuantGrade": quant_grade,
+        "TMTraderGrade24hPctChange": tm_trader_grade_24h_pct_change
+    }
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(url, json=payload, headers=headers, timeout=5)
+    print(f"Response Status: {response.status_code}")
+
                 
        
 
