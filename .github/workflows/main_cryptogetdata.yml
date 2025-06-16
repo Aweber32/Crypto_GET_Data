@@ -85,5 +85,5 @@ jobs:
         with:
           app-name: 'CryptoGetData'
           slot-name: 'Production'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          package: .
           
