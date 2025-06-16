@@ -46,7 +46,7 @@ def run():
                 payload = {
                     "id": id,
                     "Symbol": symbol,
-                    "Name": name,
+                    "TokenName": name,
                     "Date": est_hour.isoformat(),
                     "FearandGreed": FnG_data,
                     "Price": price,
