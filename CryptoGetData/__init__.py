@@ -4,6 +4,8 @@ import requests
 import time
 import functools
 import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # Retry decorator for transient network issues
 def retry(max_retries=3, delay=2):
@@ -47,11 +49,20 @@ for attempt in range(1, max_attempts + 1):
 
 time.sleep(5)
 
+now_est = datetime.now(ZoneInfo("America/New_York"))
+current_hour = now_est.hour
+
 def main(myTimer: func.TimerRequest) -> None:
     logging.info("Crypto Azure Function started.")
 
     sentiment_result = sentiment_run()
-    investor_grade_result = investor_grade_run()
     price_data_result = price_data_run()
+    # Only run daily scripts between 6:00 and 6:59 AM EST - doing it in the same funtion reduces costs
+    if current_hour == 6:
+        investor_grade_result = investor_grade_run()
+        logging.info(f"InvestorGrade ran: {investor_grade_result}")
+    else:
+        investor_grade_result = "Skipped (not 6 AM hour)"
+        logging.info("InvestorGrade skipped.")
 
     logging.info(f"Results: Sentiment: {sentiment_result}, InvestorGrade: {investor_grade_result}, PriceData: {price_data_result}")

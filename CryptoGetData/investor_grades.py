@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 def run():
@@ -15,62 +15,54 @@ def run():
         '3988',  # SOL
     }
 
-    # Get current time in Eastern Time, rounded to the hour
     est_hour = datetime.now(ZoneInfo("America/New_York")).replace(minute=0, second=0, microsecond=0)
+
+    bulk_payload = []
 
     for token in TOKENS:
         URL_SIGNALS = f"https://api.tokenmetrics.com/v2/trading-signals?token_id={token}&limit=1"
         URL_GRADES = f"https://api.tokenmetrics.com/v2/trader-grades?token_id={token}&limit=1"
         
-        response_signals = requests.get(URL_SIGNALS, headers=HEADERS)
-        response_grades = requests.get(URL_GRADES, headers=HEADERS)
+        try:
+            response_signals = requests.get(URL_SIGNALS, headers=HEADERS)
+            response_grades = requests.get(URL_GRADES, headers=HEADERS)
 
-        data_signals = response_signals.json()
-        data_grades = response_grades.json()
+            data_signals = response_signals.json().get('data', [])
+            data_grades = response_grades.json().get('data', [])
 
-        for signal in data_signals.get('data', []):
-            id = str(datetime.now().strftime("%Y%m%d%H%M%S")) + signal["TOKEN_SYMBOL"]
-            token_name = signal["TOKEN_NAME"]
-            symbol = signal["TOKEN_SYMBOL"]
-            trading_signal = signal["TRADING_SIGNAL"]
-            token_trend = signal["TOKEN_TREND"]
-            trading_signals_returns = signal["TRADING_SIGNALS_RETURNS"]
-            holding_returns = signal["HOLDING_RETURNS"]
-            tm_trader_grade = signal["TM_TRADER_GRADE"]
-            tm_investor_grade = signal["TM_INVESTOR_GRADE"]
-        for grade in data_grades.get('data', []):
-            ta_grade = grade["TA_GRADE"]
-            quant_grade = grade["QUANT_GRADE"]
-            tm_trader_grade_24h_pct_change = grade["TM_TRADER_GRADE_24H_PCT_CHANGE"]
-        url = "https://cryptocurrency.azurewebsites.net/api/InvestorGrade"
+            if data_signals and data_grades:
+                signal = data_signals[0]
+                grade = data_grades[0]
 
-        payload = {      
-            "id": id,
-            "Symbol": symbol,
-            "Date": est_hour.isoformat(), 
-            "TokenName": token_name,
-            "TradingSignal": trading_signal,
-            "TokenTrend": token_trend,
-            "TradingSignalsReturns": trading_signals_returns,
-            "HoldingReturns": holding_returns,
-            "TMTraderGrade": tm_trader_grade,
-            "TMInvestorGrade": tm_investor_grade,
-            "TAGrade": ta_grade,
-            "QuantGrade": quant_grade,
-            "TMTraderGrade24hPctChange": tm_trader_grade_24h_pct_change
-        }
+                id = datetime.now().strftime("%Y%m%d%H%M%S") + signal["TOKEN_SYMBOL"]
 
+                payload = {
+                    "id": id,
+                    "Symbol": signal["TOKEN_SYMBOL"],
+                    "Date": est_hour.isoformat(),
+                    "TokenName": signal.get("TOKEN_NAME"),
+                    "TradingSignal": signal.get("TRADING_SIGNAL"),
+                    "TokenTrend": signal.get("TOKEN_TREND"),
+                    "TradingSignalsReturns": signal.get("TRADING_SIGNALS_RETURNS"),
+                    "HoldingReturns": signal.get("HOLDING_RETURNS"),
+                    "TMTraderGrade": signal.get("TM_TRADER_GRADE"),
+                    "TMInvestorGrade": signal.get("TM_INVESTOR_GRADE"),
+                    "TAGrade": grade.get("TA_GRADE"),
+                    "QuantGrade": grade.get("QUANT_GRADE"),
+                    "TMTraderGrade24hPctChange": grade.get("TM_TRADER_GRADE_24H_PCT_CHANGE")
+                }
+
+                bulk_payload.append(payload)
+
+        except Exception as e:
+            print(f"Error retrieving data for token {token}: {e}")
+
+    if bulk_payload:
+        post_url = "https://cryptocurrency.azurewebsites.net/api/InvestorGrade/bulk"
         headers = {
             "Content-Type": "application/json"
         }
-
-        response = requests.post(url, json=payload, headers=headers, timeout=5)
-        print(f"Response Status: {response.status_code}")
-
-
-                    
-        
-
-        
-
-
+        response = requests.post(post_url, json=bulk_payload, headers=headers, timeout=10)
+        print(f"Bulk InvestorGrades POST Status: {response.status_code}")
+    else:
+        print("No investor grades to send.")

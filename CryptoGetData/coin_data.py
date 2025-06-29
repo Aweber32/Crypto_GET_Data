@@ -4,12 +4,11 @@ from zoneinfo import ZoneInfo
 
 
 def run():
-    # This script fetches cryptocurrency data from CoinMarketCap API and prints relevant information.
     url = "pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
     url_FnG = "pro-api.coinmarketcap.com/v3/fear-and-greed/latest"
     headers = {
-    'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': 'f64a2377-9da9-42dc-b1f1-8318478faced',
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': 'f64a2377-9da9-42dc-b1f1-8318478faced',
     }
 
     TARGET_SYMBOLS = {"BTC", "ETH", "XRP", "SOL"}
@@ -24,25 +23,27 @@ def run():
     FnG_data = response_FnG.json().get('data', {}).get('value')
     print(f"Fear and Greed Index: {FnG_data}")
 
+    bulk_payload = []
+
     if response.status_code == 200:
         data = response.json()
-        # Extract the relevant information from the response
         cryptocurrencies = data.get('data', [])
+
         for crypto in cryptocurrencies:
-            id = str(datetime.now().strftime("%Y%m%d%H%M%S")) + crypto.get('symbol') 
-            name = crypto.get('name')
             symbol = crypto.get('symbol')
-            price = crypto.get('quote', {}).get('USD', {}).get('price')
-            volume_24h = crypto.get('quote', {}).get('USD', {}).get('volume_24h')
-            volume_change_24h = crypto.get('quote', {}).get('USD', {}).get('volume_change_24h')
-            percent_change_1h = crypto.get('quote', {}).get('USD', {}).get('percent_change_1h')
-            percent_change_24h = crypto.get('quote', {}).get('USD', {}).get('percent_change_24h')
-            percent_change_7d = crypto.get('quote', {}).get('USD', {}).get('percent_change_7d')
-            percent_change_30d = crypto.get('quote', {}).get('USD', {}).get('percent_change_30d')
-            percent_change_60d = crypto.get('quote', {}).get('USD', {}).get('percent_change_60d')
-            percent_change_90d = crypto.get('quote', {}).get('USD', {}).get('percent_change_90d')
             if symbol in TARGET_SYMBOLS:
-                url = "https://cryptocurrency.azurewebsites.net/api/CoinData"
+                id = str(datetime.now().strftime("%Y%m%d%H%M%S")) + symbol
+                name = crypto.get('name')
+                price = crypto.get('quote', {}).get('USD', {}).get('price')
+                volume_24h = crypto.get('quote', {}).get('USD', {}).get('volume_24h')
+                volume_change_24h = crypto.get('quote', {}).get('USD', {}).get('volume_change_24h')
+                percent_change_1h = crypto.get('quote', {}).get('USD', {}).get('percent_change_1h')
+                percent_change_24h = crypto.get('quote', {}).get('USD', {}).get('percent_change_24h')
+                percent_change_7d = crypto.get('quote', {}).get('USD', {}).get('percent_change_7d')
+                percent_change_30d = crypto.get('quote', {}).get('USD', {}).get('percent_change_30d')
+                percent_change_60d = crypto.get('quote', {}).get('USD', {}).get('percent_change_60d')
+                percent_change_90d = crypto.get('quote', {}).get('USD', {}).get('percent_change_90d')
+
                 payload = {
                     "id": id,
                     "Symbol": symbol,
@@ -59,8 +60,16 @@ def run():
                     "PercentChange60d": percent_change_60d,
                     "PercentChange90d": percent_change_90d
                 }
-                headers = {
-                    "Content-Type": "application/json"
-                }
-                response = requests.post(url, json=payload, headers=headers, timeout=5)
-                print(f"Response Status: {response.status_code}")
+
+                bulk_payload.append(payload)
+
+    # 🔁 Bulk post the collected data
+    if bulk_payload:
+        post_url = "https://cryptocurrency.azurewebsites.net/api/CoinData/bulk"
+        post_headers = {
+            "Content-Type": "application/json"
+        }
+        response = requests.post(post_url, json=bulk_payload, headers=post_headers, timeout=10)
+        print(f"Bulk CoinData POST Status: {response.status_code}")
+    else:
+        print("No coin data to send.")
