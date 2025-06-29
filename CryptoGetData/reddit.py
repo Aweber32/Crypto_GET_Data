@@ -2,7 +2,7 @@ import pandas as pd
 import praw
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import time
-import reddit_configs as reddit_configs
+import CryptoGetData.reddit_configs as reddit_configs
 import prawcore
 from datetime import datetime
 import requests
