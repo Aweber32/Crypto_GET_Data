@@ -64,5 +64,8 @@ def run():
         }
         response = requests.post(post_url, json=bulk_payload, headers=headers, timeout=10)
         print(f"Bulk InvestorGrades POST Status: {response.status_code}")
+        return response.status_code
     else:
         print("No investor grades to send.")
+        return "No investor grades to send."
+        

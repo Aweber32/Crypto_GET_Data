@@ -71,5 +71,7 @@ def run():
         }
         response = requests.post(post_url, json=bulk_payload, headers=post_headers, timeout=10)
         print(f"Bulk CoinData POST Status: {response.status_code}")
+        return response.status_code
     else:
         print("No coin data to send.")
+        return "No coin data to send."

@@ -79,5 +79,7 @@ def run():
         headers = {"Content-Type": "application/json"}
         response = requests.post(url, json=bulk_payload, headers=headers, timeout=10)
         print(f"Bulk Sentiment POST Status: {response.status_code}")
+        return response.status_code
     else:
         print("No sentiment data to send.")
+        return "No sentiment data to send."
