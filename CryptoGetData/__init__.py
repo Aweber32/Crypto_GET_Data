@@ -75,7 +75,7 @@ def main(myTimer: func.TimerRequest) -> None:
 from azure.identity import DefaultAzureCredential
 
 def start_container_job():
-    subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
+    subscription_id = "24e9a834-c31f-4f9c-97c2-b069d8b256b3"
     resource_group = "Crypto"
     job_name = "crypto-eval"
     api_version = "2023-05-01"
