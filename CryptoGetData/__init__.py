@@ -57,7 +57,7 @@ def main(myTimer: func.TimerRequest) -> None:
 
     sentiment_result = sentiment_run()
     price_data_result = price_data_run()
-    # Only run daily scripts between 6:00 and 6:59 AM EST - doing it in the same funtion reduces costs
+
     if current_hour == 6:
         investor_grade_result = investor_grade_run()
         logging.info(f"InvestorGrade ran: {investor_grade_result}")
@@ -66,3 +66,35 @@ def main(myTimer: func.TimerRequest) -> None:
         logging.info("InvestorGrade skipped.")
 
     logging.info(f"Results: Sentiment: {sentiment_result}, InvestorGrade: {investor_grade_result}, PriceData: {price_data_result}")
+
+    try:
+        start_container_job()
+    except Exception as e:
+        logging.error(f"Error starting container job: {e}")
+
+from azure.identity import DefaultAzureCredential
+
+def start_container_job():
+    subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
+    resource_group = "Crypto"
+    job_name = "crypto-eval"
+    api_version = "2023-05-01"
+
+    credential = DefaultAzureCredential()
+    token = credential.get_token("https://management.azure.com/.default").token
+
+    url = (
+        f"https://management.azure.com/subscriptions/{subscription_id}/"
+        f"resourceGroups/{resource_group}/providers/Microsoft.App/jobs/{job_name}/start?api-version={api_version}"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(url, headers=headers)
+    if response.status_code in [200, 202]:
+        logging.info(f"Container App Job '{job_name}' started successfully.")
+    else:
+        logging.error(f"Failed to start job: {response.status_code} - {response.text}")
