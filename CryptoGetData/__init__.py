@@ -77,7 +77,7 @@ from azure.identity import DefaultAzureCredential
 def start_container_job():
     subscription_id = "24e9a834-c31f-4f9c-97c2-b069d8b256b3"
     resource_group = "Crypto"
-    job_name = "crypto-eval"
+    job_name = "crypto-engineering"
     api_version = "2023-05-01"
 
     credential = DefaultAzureCredential()
